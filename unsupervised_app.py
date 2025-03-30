@@ -107,7 +107,7 @@ with tab2:
     
     st.markdown("<div class='key-features-description'>This project aims to develop an anime recommendation system using multiple machine learning approaches. The goal is to accurately suggest anime based on user preferences, providing a valuable tool for anime discovery.</div>", unsafe_allow_html=True) 
 
-    st.markdown("<div class='key-features-title'>Key Features:</div>", unsafe_allow_html=True) 
+    st.markdown("<br><div class='key-features-title'>Key Features:</div>", unsafe_allow_html=True) 
 
     st.markdown("""
     <ul class="key-feature">
@@ -117,6 +117,45 @@ with tab2:
         <li class="key-feature">Techniques used: NLP, similarity metrics, and collaborative filtering methods.</li>
     </ul>
     """, unsafe_allow_html=True)
+
+     # Data description
+    st.markdown("<br><div class='key-features-title'>Dataset Information:</div>", unsafe_allow_html=True)
+    
+    st.markdown("""
+    <div class="key-features-description">
+    Our anime recommendation system is built using a dataset that contains the following information:
+    </div>
+    """, unsafe_allow_html=True)
+    
+    data_fields = {
+        "Field": ["anime_id", "name", "genre", "type", "episodes", "rating", "members"],
+        "Description": [
+            "Unique identifier for each anime",
+            "Title of the anime",
+            "Comma-separated list of genres",
+            "TV, Movie, etc.",
+            "Number of episodes (1 for movies)",
+            "Average user rating (1-10)",
+            "Number of community members that are in this anime's group"
+        ]
+    }
+    
+    df_fields = pd.DataFrame(data_fields)
+    st.table(df_fields)
+    
+    # Project workflow
+    st.markdown("<br><div class='key-features-title'>Project Workflow:</div>", unsafe_allow_html=True)
+    
+    st.markdown("""
+    <ul class="key-feature">
+        <li class="key-feature">Data Collection: Gathering anime data.</li>
+        <li class="key-feature">Data Preprocessing: Cleaning and transforming raw data for modeling.</li>
+        <li class="key-feature">Model Development: Implementing collaborative and content-based filtering algorithms.</li>
+        <li class="key-feature">Model Evaluation: Assessing recommendation accuracy with metrics like RMSE and MAE.</li>
+        <li class="key-feature">System Integration: Creating a user-friendly interface with Streamlit.</li>
+    </ul>
+    """, unsafe_allow_html=True)
+
 
 # Tab 3: Anime Recommender
 with tab3:
