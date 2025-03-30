@@ -240,36 +240,60 @@ with tab3:
     # Top Rated Anime
     if "rating" in anime_df.columns:
         st.subheader("Top Rated Anime")
-        top_rated = anime_df.sort_values(by="rating", ascending=False).head(10)
         
-        fig = px.bar(
-            top_rated, 
-            x="name", 
-            y="rating",
-            title="Top 10 Highest Rated Anime",
-            labels={"name": "Anime Title", "rating": "Rating (out of 10)"},
-            color="rating",
-            color_continuous_scale=px.colors.sequential.Reds
-        )
-        fig.update_layout(xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+        # Ensure ratings are numeric
+        rated_data = anime_df.copy()
+        rated_data['rating'] = pd.to_numeric(rated_data['rating'], errors='coerce')
+        rated_data = rated_data.dropna(subset=['rating'])
+        
+        if len(rated_data) > 0:
+            try:
+                top_rated = rated_data.sort_values(by="rating", ascending=False).head(10)
+                
+                fig = px.bar(
+                    top_rated, 
+                    x="name", 
+                    y="rating",
+                    title="Top 10 Highest Rated Anime",
+                    labels={"name": "Anime Title", "rating": "Rating (out of 10)"},
+                    color="rating",
+                    color_continuous_scale=px.colors.sequential.Reds
+                )
+                fig.update_layout(xaxis_tickangle=-45)
+                st.plotly_chart(fig, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error creating top rated chart: {e}")
+        else:
+            st.warning("No valid numeric rating data available for visualization.")
     
     # Most Popular Anime by Members
     if "members" in anime_df.columns:
         st.subheader("Most Popular Anime")
-        most_popular = anime_df.sort_values(by="members", ascending=False).head(10)
         
-        fig = px.bar(
-            most_popular, 
-            x="name", 
-            y="members",
-            title="Top 10 Most Popular Anime by Membership",
-            labels={"name": "Anime Title", "members": "Number of Members"},
-            color="members",
-            color_continuous_scale=px.colors.sequential.Blues
-        )
-        fig.update_layout(xaxis_tickangle=-45)
-        st.plotly_chart(fig, use_container_width=True)
+        # Ensure members are numeric
+        popular_data = anime_df.copy()
+        popular_data['members'] = pd.to_numeric(popular_data['members'], errors='coerce')
+        popular_data = popular_data.dropna(subset=['members'])
+        
+        if len(popular_data) > 0:
+            try:
+                most_popular = popular_data.sort_values(by="members", ascending=False).head(10)
+                
+                fig = px.bar(
+                    most_popular, 
+                    x="name", 
+                    y="members",
+                    title="Top 10 Most Popular Anime by Membership",
+                    labels={"name": "Anime Title", "members": "Number of Members"},
+                    color="members",
+                    color_continuous_scale=px.colors.sequential.Blues
+                )
+                fig.update_layout(xaxis_tickangle=-45)
+                st.plotly_chart(fig, use_container_width=True)
+            except Exception as e:
+                st.error(f"Error creating most popular chart: {e}")
+        else:
+            st.warning("No valid numeric member data available for visualization.")
     
     # Distribution visualizations in two columns
     col1, col2 = st.columns(2)
@@ -278,15 +302,26 @@ with tab3:
         # Rating Distribution
         if "rating" in anime_df.columns:
             st.subheader("Rating Distribution")
-            fig = px.histogram(
-                anime_df,
-                x="rating",
-                nbins=20,
-                title="Distribution of Anime Ratings",
-                labels={"rating": "Rating"},
-                color_discrete_sequence=["#ff6b6b"]
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            # Ensure ratings are numeric
+            rating_data = anime_df.copy()
+            rating_data['rating'] = pd.to_numeric(rating_data['rating'], errors='coerce')
+            rating_data = rating_data.dropna(subset=['rating'])
+            
+            if len(rating_data) > 0:
+                try:
+                    fig = px.histogram(
+                        rating_data,
+                        x="rating",
+                        nbins=20,
+                        title="Distribution of Anime Ratings",
+                        labels={"rating": "Rating"},
+                        color_discrete_sequence=["#ff6b6b"]
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    st.error(f"Error creating rating histogram: {e}")
+            else:
+                st.warning("No valid numeric rating data available for visualization.")
         
         # Type Distribution
         if "type" in anime_df.columns:
@@ -308,38 +343,67 @@ with tab3:
         if "episodes" in anime_df.columns:
             st.subheader("Episodes Distribution")
 
-            episodes_df = anime_df[anime_df["episodes"] <= anime_df["episodes"].quantile(0.99)]
+            episode_data = anime_df.copy()
+            episode_data['episodes'] = pd.to_numeric(episode_data['episodes'], errors='coerce')
             
-            fig = px.histogram(
-                episodes_df,
-                x="episodes",
-                nbins=30,
-                title="Distribution of Episode Counts",
-                labels={"episodes": "Number of Episodes"},
-                color_discrete_sequence=["#5c7cfa"]
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            
+            episode_data = episode_data.dropna(subset=['episodes'])
+            
+            # Only calculate quantile if there are enough numeric values
+            if len(episode_data) > 0:
+                try:
+                    max_episodes = 100   
+                    # If we have enough data, try to use quantile
+                    if len(episode_data) > 10:
+                        max_episodes = episode_data['episodes'].quantile(0.99)
+                    
+                    episodes_df = episode_data[episode_data["episodes"] <= max_episodes]
+                    
+                    fig = px.histogram(
+                        episodes_df,
+                        x="episodes",
+                        nbins=30,
+                        title="Distribution of Episode Counts",
+                        labels={"episodes": "Number of Episodes"},
+                        color_discrete_sequence=["#5c7cfa"]
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    st.error(f"Error creating episodes histogram: {e}")
+            else:
+                st.warning("No valid numeric episode data available for visualization.")
         
         # Members Distribution
         if "members" in anime_df.columns:
             st.subheader("Popularity Distribution")
-
-            fig = px.histogram(
-                anime_df,
-                x="members",
-                nbins=30,
-                title="Distribution of Anime Popularity",
-                labels={"members": "Number of Members (log scale)"},
-                color_discrete_sequence=["#20c997"],
-                log_x=True  # Use log scale for x-axis
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            # Ensure members are numeric
+            members_data = anime_df.copy()
+            members_data['members'] = pd.to_numeric(members_data['members'], errors='coerce')
+            members_data = members_data.dropna(subset=['members'])
+            
+            if len(members_data) > 0:
+                try:
+                    
+                    fig = px.histogram(
+                        members_data,
+                        x="members",
+                        nbins=30,
+                        title="Distribution of Anime Popularity",
+                        labels={"members": "Number of Members (log scale)"},
+                        color_discrete_sequence=["#20c997"],
+                        log_x=True  # Use log scale for x-axis
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    st.error(f"Error creating members histogram: {e}")
+            else:
+                st.warning("No valid numeric member data available for visualization.")
     
     # Genre Analysis
     if "genre" in anime_df.columns:
         st.subheader("Top Anime Genres")
         
-
+        # Extract all genres from comma-separated lists
         all_genres = []
         for genres in anime_df["genre"].dropna().str.split(", "):
             if isinstance(genres, list):
@@ -364,27 +428,38 @@ with tab3:
     if all(col in anime_df.columns for col in ["rating", "members"]):
         st.subheader("Rating vs. Popularity")
         
-        fig = px.scatter(
-            anime_df,
-            x="members",
-            y="rating",
-            title="Relationship Between Popularity and Rating",
-            labels={"members": "Number of Members (log scale)", "rating": "Rating"},
-            opacity=0.6,
-            color="rating",
-            color_continuous_scale=px.colors.sequential.Plasma,
-            hover_name="name",
-            log_x=True  # Use log scale for x-axis
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        # Ensure data is numeric
+        scatter_data = anime_df.copy()
+        scatter_data['rating'] = pd.to_numeric(scatter_data['rating'], errors='coerce')
+        scatter_data['members'] = pd.to_numeric(scatter_data['members'], errors='coerce')
+        scatter_data = scatter_data.dropna(subset=['rating', 'members'])
         
-        st.markdown("""
-        <div style="text-align: center; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
-            <p>This visualization shows the relationship between an anime's popularity (member count) and its rating. 
-            Each point represents an anime title, and the color indicates its rating.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
+        if len(scatter_data) > 0:
+            try:
+                fig = px.scatter(
+                    scatter_data,
+                    x="members",
+                    y="rating",
+                    title="Relationship Between Popularity and Rating",
+                    labels={"members": "Number of Members (log scale)", "rating": "Rating"},
+                    opacity=0.6,
+                    color="rating",
+                    color_continuous_scale=px.colors.sequential.Plasma,
+                    hover_name="name",
+                    log_x=True  # Use log scale for x-axis
+                )
+                st.plotly_chart(fig, use_container_width=True)
+                
+                st.markdown("""
+                <div style="text-align: center; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+                    <p>This visualization shows the relationship between an anime's popularity (member count) and its rating. 
+                    Each point represents an anime title, and the color indicates its rating.</p>
+                </div>
+                """, unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Error creating scatter plot: {e}")
+        else:
+            st.warning("No valid numeric data available for the scatter plot.")
 
 # Tab 4: Anime Recommender
 with tab4:
