@@ -1,5 +1,11 @@
 import streamlit as st
 import pandas as pd
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import plotly.express as px
+import plotly.graph_objects as go
+
 
 # Set page configuration
 st.set_page_config(
@@ -77,11 +83,75 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Load the anime data from CSV - MOVED TO TOP LEVEL
+@st.cache_data
+def load_anime_data():
+    try:
+        df = pd.read_csv('anime.csv')
+        
+        # Convert numeric columns to appropriate data types
+        # Convert episodes to numeric, errors='coerce' will set invalid values to NaN
+        if 'episodes' in df.columns:
+            df['episodes'] = pd.to_numeric(df['episodes'], errors='coerce')
+            
+        # Convert rating to numeric
+        if 'rating' in df.columns:
+            df['rating'] = pd.to_numeric(df['rating'], errors='coerce')
+            
+        # Convert members to numeric
+        if 'members' in df.columns:
+            df['members'] = pd.to_numeric(df['members'], errors='coerce')
+            
+        return df
+    except FileNotFoundError:
+        st.error("Anime CSV file not found. Using sample data instead.")
+        # Sample data as fallback
+        data = {
+            "anime_id": list(range(1, 12)),
+            "name": [
+                "Attack on Titan", 
+                "Death Note", 
+                "Fullmetal Alchemist: Brotherhood", 
+                "One Punch Man", 
+                "My Hero Academia", 
+                "Demon Slayer", 
+                "Naruto", 
+                "Hunter x Hunter", 
+                "One Piece", 
+                "Sword Art Online", 
+                "Dragon Ball Z"
+            ],
+            "genre": [
+                "Action, Drama, Fantasy", 
+                "Mystery, Psychological, Thriller", 
+                "Action, Adventure, Fantasy", 
+                "Action, Comedy", 
+                "Action, Comedy, School", 
+                "Action, Demons, Historical", 
+                "Action, Adventure, Martial Arts", 
+                "Action, Adventure, Fantasy", 
+                "Action, Adventure, Fantasy", 
+                "Action, Adventure, Fantasy", 
+                "Action, Adventure, Fantasy"
+            ],
+            "type": ["TV", "TV", "TV", "TV", "TV", "TV", "TV", "TV", "TV", "TV", "TV"],
+            "episodes": [75, 37, 64, 24, 113, 26, 220, 148, 1000, 96, 291],
+            "rating": [8.53, 8.62, 9.11, 8.71, 8.12, 8.92, 7.98, 9.05, 8.54, 7.29, 8.15],
+            "members": [200000, 300000, 400000, 250000, 180000, 190000, 350000, 280000, 450000, 320000, 290000]
+        }
+        return pd.DataFrame(data)
+
+# Load the data
+anime_df = load_anime_data()
+
+# Get list of anime names for the dropdown
+anime_list = anime_df['name'].tolist()
+
 # Header
 st.markdown('<div class="header-container"><h1>Anime Recommender System</h1></div>', unsafe_allow_html=True)
 
 # Tabs
-tab1, tab2, tab3 = st.tabs(["Team Info", "Project Overview", "Anime Recommender"])
+tab1, tab2, tab3, tab4 = st.tabs(["Team Info", "Project Overview", "Visualizations", "Anime Recommender"])
 
 # Tab 1: Team Info
 with tab1:
@@ -156,9 +226,168 @@ with tab2:
     </ul>
     """, unsafe_allow_html=True)
 
-
-# Tab 3: Anime Recommender
+# Tab 3: Visualizations
 with tab3:
+    st.markdown("<h1 class='centered-title'>Anime Insights</h1>", unsafe_allow_html=True)
+    
+    # Check if we have the necessary columns for visualizations
+    required_columns = ["rating", "members", "type", "episodes", "genre"]
+    missing_columns = [col for col in required_columns if col not in anime_df.columns]
+    
+    if missing_columns:
+        st.error(f"Missing columns in dataset: {', '.join(missing_columns)}. Some visualizations may not be available.")
+    
+    # Top Rated Anime
+    if "rating" in anime_df.columns:
+        st.subheader("Top Rated Anime")
+        top_rated = anime_df.sort_values(by="rating", ascending=False).head(10)
+        
+        fig = px.bar(
+            top_rated, 
+            x="name", 
+            y="rating",
+            title="Top 10 Highest Rated Anime",
+            labels={"name": "Anime Title", "rating": "Rating (out of 10)"},
+            color="rating",
+            color_continuous_scale=px.colors.sequential.Reds
+        )
+        fig.update_layout(xaxis_tickangle=-45)
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Most Popular Anime by Members
+    if "members" in anime_df.columns:
+        st.subheader("Most Popular Anime")
+        most_popular = anime_df.sort_values(by="members", ascending=False).head(10)
+        
+        fig = px.bar(
+            most_popular, 
+            x="name", 
+            y="members",
+            title="Top 10 Most Popular Anime by Membership",
+            labels={"name": "Anime Title", "members": "Number of Members"},
+            color="members",
+            color_continuous_scale=px.colors.sequential.Blues
+        )
+        fig.update_layout(xaxis_tickangle=-45)
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Distribution visualizations in two columns
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # Rating Distribution
+        if "rating" in anime_df.columns:
+            st.subheader("Rating Distribution")
+            fig = px.histogram(
+                anime_df,
+                x="rating",
+                nbins=20,
+                title="Distribution of Anime Ratings",
+                labels={"rating": "Rating"},
+                color_discrete_sequence=["#ff6b6b"]
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        
+        # Type Distribution
+        if "type" in anime_df.columns:
+            st.subheader("Anime Types")
+            type_counts = anime_df["type"].value_counts().reset_index()
+            type_counts.columns = ["Type", "Count"]
+            
+            fig = px.pie(
+                type_counts, 
+                values="Count", 
+                names="Type",
+                title="Distribution of Anime Types",
+                color_discrete_sequence=px.colors.qualitative.Set3
+            )
+            st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        # Episodes Distribution
+        if "episodes" in anime_df.columns:
+            st.subheader("Episodes Distribution")
+
+            episodes_df = anime_df[anime_df["episodes"] <= anime_df["episodes"].quantile(0.99)]
+            
+            fig = px.histogram(
+                episodes_df,
+                x="episodes",
+                nbins=30,
+                title="Distribution of Episode Counts",
+                labels={"episodes": "Number of Episodes"},
+                color_discrete_sequence=["#5c7cfa"]
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        
+        # Members Distribution
+        if "members" in anime_df.columns:
+            st.subheader("Popularity Distribution")
+
+            fig = px.histogram(
+                anime_df,
+                x="members",
+                nbins=30,
+                title="Distribution of Anime Popularity",
+                labels={"members": "Number of Members (log scale)"},
+                color_discrete_sequence=["#20c997"],
+                log_x=True  # Use log scale for x-axis
+            )
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Genre Analysis
+    if "genre" in anime_df.columns:
+        st.subheader("Top Anime Genres")
+        
+
+        all_genres = []
+        for genres in anime_df["genre"].dropna().str.split(", "):
+            if isinstance(genres, list):
+                all_genres.extend(genres)
+        
+        # Count genre frequencies
+        genre_counts = pd.Series(all_genres).value_counts().reset_index().head(15)
+        genre_counts.columns = ["Genre", "Count"]
+        
+        fig = px.bar(
+            genre_counts, 
+            x="Genre", 
+            y="Count",
+            title="Top 15 Anime Genres",
+            color="Count",
+            color_continuous_scale=px.colors.sequential.Viridis
+        )
+        fig.update_layout(xaxis_tickangle=-45)
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Scatter plot showing relationship between ratings and popularity
+    if all(col in anime_df.columns for col in ["rating", "members"]):
+        st.subheader("Rating vs. Popularity")
+        
+        fig = px.scatter(
+            anime_df,
+            x="members",
+            y="rating",
+            title="Relationship Between Popularity and Rating",
+            labels={"members": "Number of Members (log scale)", "rating": "Rating"},
+            opacity=0.6,
+            color="rating",
+            color_continuous_scale=px.colors.sequential.Plasma,
+            hover_name="name",
+            log_x=True  # Use log scale for x-axis
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        
+        st.markdown("""
+        <div style="text-align: center; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+            <p>This visualization shows the relationship between an anime's popularity (member count) and its rating. 
+            Each point represents an anime title, and the color indicates its rating.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+
+# Tab 4: Anime Recommender
+with tab4:
     st.subheader("Find Your Next Favorite Anime")
     
     # Algorithm selection
@@ -173,21 +402,6 @@ with tab3:
     # Anime input section
     st.markdown("<h3>Enter Your Three Favorite Anime</h3>", unsafe_allow_html=True)
 
-    # Anime List
-    anime_list = [
-        "Attack on Titan (2013)",
-        "Death Note (2006)",
-        "Fullmetal Alchemist: Brotherhood (2009)",
-        "One Punch Man (2015)",
-        "My Hero Academia (2016)",
-        "Demon Slayer (2019)",
-        "Naruto (2002)",
-        "Hunter x Hunter (2011)",
-        "One Piece (1999)",
-        "Sword Art Online (2012)",
-        "Dragon Ball Z (1989)"
-    ]
-
     # Anime selection dropdowns
     st.markdown('<p class="anime-input-label">First Option</p>', unsafe_allow_html=True)
     anime1 = st.selectbox(
@@ -201,7 +415,7 @@ with tab3:
     anime2 = st.selectbox(
         label="Second anime",
         options=anime_list,
-        index=1,
+        index=1 if len(anime_list) > 1 else 0,
         label_visibility="collapsed"
     )
 
@@ -209,28 +423,32 @@ with tab3:
     anime3 = st.selectbox(
         label="Third anime",
         options=anime_list,
-        index=2,
+        index=2 if len(anime_list) > 2 else 0,
         label_visibility="collapsed"
     )
+ 
 
     # Recommendation button
     if st.button("Recommend"):
         st.write("### Recommended Anime")
+
+        # Model Placeholder ########
+        st.write(f"Selected anime: {anime1}, {anime2}, {anime3}")
         
         # Content Based Filtering
         if recommendation_algorithm == "Content Based Filtering":
             st.write("Based on content similarity, we recommend:")
             recommendations = [
-                "Jujutsu Kaisen (2020)",
-                "Vinland Saga (2019)",
-                "Chainsaw Man (2022)"
+                "Jujutsu Kaisen",
+                "Vinland Saga",
+                "Chainsaw Man"
             ]
         else:  # Collaborative filtering
             st.write("Based on what similar users liked, we recommend:")
             recommendations = [
-                "Steins;Gate (2011)",
-                "Code Geass (2006)",
-                "Cowboy Bebop (1998)"
+                "Steins;Gate",
+                "Code Geass",
+                "Cowboy Bebop"
             ]
         
         # Display recommendations
