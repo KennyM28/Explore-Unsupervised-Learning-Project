@@ -1,0 +1,15 @@
+artifact_uri: file:///c:/Users/kenny/Documents/ExploreAI/Unsupervised%20Learning/Group%20Project/Explore-Unsupervised-Learning-Project/mlruns/903182618519181991/888add5bdc2241be9f5439e2848cd043/artifacts
+end_time: 1744358333552
+entry_point_name: ''
+experiment_id: '903182618519181991'
+lifecycle_stage: active
+run_id: 888add5bdc2241be9f5439e2848cd043
+run_name: Collaborative Filtering
+run_uuid: 888add5bdc2241be9f5439e2848cd043
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1744358333511
+status: 4
+tags: []
+user_id: kenny

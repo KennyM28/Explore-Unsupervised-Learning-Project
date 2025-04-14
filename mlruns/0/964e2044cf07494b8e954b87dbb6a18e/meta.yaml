@@ -1,0 +1,15 @@
+artifact_uri: file:///c:/Users/kenny/Documents/ExploreAI/Unsupervised%20Learning/Group%20Project/Explore-Unsupervised-Learning-Project/mlruns/0/964e2044cf07494b8e954b87dbb6a18e/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 964e2044cf07494b8e954b87dbb6a18e
+run_name: anime_recommender_system
+run_uuid: 964e2044cf07494b8e954b87dbb6a18e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1744549020839
+status: 1
+tags: []
+user_id: kenny

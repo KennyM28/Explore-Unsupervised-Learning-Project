@@ -1,0 +1,15 @@
+artifact_uri: file:///c:/Users/kenny/Documents/ExploreAI/Unsupervised%20Learning/Group%20Project/Explore-Unsupervised-Learning-Project/mlruns/903182618519181991/b07961f9ee4d426c8a7cfd6f74acd1ce/artifacts
+end_time: 1744276609647
+entry_point_name: ''
+experiment_id: '903182618519181991'
+lifecycle_stage: active
+run_id: b07961f9ee4d426c8a7cfd6f74acd1ce
+run_name: Content-Based Filtering
+run_uuid: b07961f9ee4d426c8a7cfd6f74acd1ce
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1744276599165
+status: 3
+tags: []
+user_id: kenny
